@@ -1,6 +1,5 @@
 // Initiate a Moniepoint manual bank-transfer payment.
-// Creates a pending payment_attempts row with a unique amount (random kobo)
-// and returns the business account + reference details for the user to pay into.
+// Supports both signed-in users AND anonymous guest checkout from ads.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
@@ -20,10 +19,6 @@ function genTxRef() {
   return `MNP-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
-// NOTE: We no longer add a random kobo decimal. Moniepoint webhooks are not
-// reliable enough to depend on, so verification is now handled by an admin
-// from the dashboard. The user just sends the clean round amount.
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,26 +30,59 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // 1. Extract user if logged in, otherwise flag as guest (DO NOT REJECT)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return json({ error: 'Not signed in' }, 200);
-    }
-    const jwt = authHeader.replace('Bearer ', '');
-    let userId: string;
+    let userId: string | null = null;
     let userEmail: string | null = null;
-    try {
-      const payload = JSON.parse(atob(jwt.split('.')[1]));
-      userId = payload.sub;
-      userEmail = payload.email ?? null;
-    } catch {
-      return json({ error: 'Bad token' }, 200);
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const jwt = authHeader.replace('Bearer ', '');
+      try {
+        const payload = JSON.parse(atob(jwt.split('.')[1]));
+        // Ensure it's an actual user ID, not an anon API key
+        if (payload?.sub && payload.role !== 'anon') {
+          userId = payload.sub;
+          userEmail = payload.email ?? null;
+        }
+      } catch {
+        // Bad or anonymous token — fallback to guest
+      }
     }
-    if (!userId) return json({ error: 'Not signed in' }, 200);
+
+    let isGuest = false;
+
+    // 2. If visitor has no account (cold traffic from Ads), create a guest profile
+    // This ensures foreign key constraints on 'payment_attempts.user_id' NEVER break.
+    if (!userId) {
+      isGuest = true;
+      const guestSuffix = Math.random().toString(36).slice(2, 8);
+      const guestEmail = `guest_${Date.now()}_${guestSuffix}@access.guest`;
+      const guestPassword = `Guest_${Date.now()}_${guestSuffix}!`;
+
+      try {
+        const { data: newGuest } = await supabase.auth.admin.createUser({
+          email: guestEmail,
+          password: guestPassword,
+          email_confirm: true,
+          user_metadata: {
+            is_guest: true,
+            source: 'cloak_landing',
+          },
+        });
+
+        if (newGuest?.user?.id) {
+          userId = newGuest.user.id;
+          userEmail = guestEmail;
+        }
+      } catch (err) {
+        console.warn('Could not provision guest auth user, using null:', err);
+      }
+    }
 
     const body = await req.json().catch(() => ({}));
     const {
       amount,
-      purpose = 'deposit',
+      purpose = 'membership',
       sender_bank_code,
       sender_bank_name,
       sender_account_number,
@@ -63,13 +91,13 @@ Deno.serve(async (req) => {
       resume_attempt_id,
     } = body || {};
 
-
-    // ---- Load config (must have business account) — needed for both fresh & resume ----
+    // ---- Load platform Moniepoint config ----
     const { data: config, error: cfgErr } = await supabase
       .from('platform_config')
       .select('maintenance_mode, moniepoint_account_number, moniepoint_account_name, moniepoint_bank_name')
       .eq('id', 1)
       .single();
+
     if (cfgErr || !config) {
       return json({ error: 'System error', details: cfgErr?.message }, 200);
     }
@@ -85,24 +113,25 @@ Deno.serve(async (req) => {
       bank_name: config.moniepoint_bank_name || 'Moniepoint MFB',
     };
 
-    // ---- RESUME PATH: rehydrate an existing attempt (used when the user
-    // reloads the page — the drawer URL carries ?pay=<attempt_id>). ----
+    // ---- RESUME PATH (Restoring session after mobile app switch) ----
     if (resume_attempt_id && typeof resume_attempt_id === 'string') {
       const { data: existing, error: exErr } = await supabase
         .from('payment_attempts')
         .select('id, user_id, tx_ref, amount, unique_amount, purpose, status, provider, metadata, created_at')
         .eq('id', resume_attempt_id)
         .maybeSingle();
+
       if (exErr || !existing) {
         return json({ error: 'Payment not found', not_found: true }, 200);
       }
-      if (existing.user_id !== userId) {
+      
+      const md = (existing.metadata as any) || {};
+
+      // Only block mismatch if it belonged to an existing signed-in account
+      if (existing.user_id && userId && existing.user_id !== userId && !md.is_guest) {
         return json({ error: 'Payment not found', not_found: true }, 200);
       }
-      if (existing.provider !== 'moniepoint') {
-        return json({ error: 'Not a bank transfer payment', not_found: true }, 200);
-      }
-      const md = (existing.metadata as any) || {};
+
       return json({
         success: true,
         resumed: true,
@@ -110,44 +139,36 @@ Deno.serve(async (req) => {
         tx_ref: existing.tx_ref,
         base_amount: existing.amount,
         unique_amount: existing.unique_amount ?? existing.amount,
-        purpose: existing.purpose || md.purpose || 'deposit',
+        purpose: existing.purpose || md.purpose || 'membership',
         auto_buy_spots: Number(md.auto_buy_spots) || 0,
         expected_payout: Number(md.expected_payout) || undefined,
-        status: existing.status, // 'pending' | 'verified' | 'failed'
+        status: existing.status,
         business_account: businessAccount,
         expires_in_minutes: 30,
       });
     }
 
-    // ---- Validate inputs (fresh initiation only) ----
+    // ---- Validate inputs ----
     if (!amount || typeof amount !== 'number' || amount < 100) {
       return json({ error: 'Enter a valid amount (₦100 minimum)' }, 200);
     }
     if (config.maintenance_mode) {
       return json({ error: 'Platform is under maintenance. Please try again shortly.' }, 200);
     }
-    // Sender info is now optional at initiation — collected later as a fallback
-    // if the webhook auto-match misses. Only validate if provided.
-    if (sender_account_number && !/^\d{10}$/.test(String(sender_account_number))) {
-      return json({ error: 'Enter a valid 10-digit sender account number' }, 200);
-    }
 
-    // Optional caller-supplied trace string ("welcome_modal", "wallet_card",
-    // "account_status_card", "machines_card", "activation_success_screen"...).
-    // Purely observability — helps admin see WHICH button fired an attempt.
     const source: string | null =
-      typeof body?.source === 'string' && body.source.length <= 60 ? body.source : null;
+      typeof body?.source === 'string' && body.source.length <= 60 
+        ? body.source 
+        : (isGuest ? 'cloak_landing_guest' : null);
 
-    // ---- GUARD 1: never let an already-activated member pay membership again.
-    // This is the actual bug that just charged a member ₦5,000 twice — a stale
-    // non-member CTA on the dashboard fired startMembershipPayment while the
-    // profile query was still returning is_member=false from before webhook.
-    if (purpose === 'membership') {
+    // ---- Only check existing membership for verified signed-in users (not guests) ----
+    if (purpose === 'membership' && userId && !isGuest) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_member')
         .eq('id', userId)
         .maybeSingle();
+
       if (profile?.is_member) {
         return json({
           error: 'You are already a member — no need to pay again.',
@@ -155,9 +176,7 @@ Deno.serve(async (req) => {
         }, 200);
       }
 
-      // ---- GUARD 2: dedupe pending membership attempts within 30 minutes.
-      // If one already exists, resume it instead of creating a new row so the
-      // user never gets billed twice while the previous one is still open.
+      // Dedupe open attempts for signed-in users within 30 min
       const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const { data: openAttempt } = await supabase
         .from('payment_attempts')
@@ -170,6 +189,7 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
       if (openAttempt) {
         const md = (openAttempt.metadata as any) || {};
         return json({
@@ -189,13 +209,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- Build unique amount ----
     const baseAmount = Math.round(Number(amount));
     const uniqueAmount = baseAmount;
     const txRef = genTxRef();
     const promisedPayout = Math.max(0, Math.round(Number(expected_payout) || 0));
 
-    // ---- Insert pending payment attempt ----
+    // ---- Create pending payment attempt ----
     const { data: attempt, error: insErr } = await supabase
       .from('payment_attempts')
       .insert({
@@ -214,6 +233,7 @@ Deno.serve(async (req) => {
           base_amount: baseAmount,
           unique_amount: uniqueAmount,
           user_email: userEmail,
+          is_guest: isGuest,
           auto_buy_spots: Math.max(0, Math.min(Number(auto_buy_spots) || 0, 100)),
           expected_payout: promisedPayout || null,
           source,
