@@ -1,0 +1,3 @@
+DELETE FROM public.transactions 
+WHERE user_id = '00000000-0000-0000-0000-000000000000' 
+AND id != '992a695c-383c-41c9-a852-b8f0d432ec29'

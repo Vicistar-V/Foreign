@@ -1,0 +1,1 @@
+UPDATE public.payment_attempts SET status='verified', verified_at=now(), metadata = COALESCE(metadata,'{}'::jsonb) || jsonb_build_object('manual_resolution','User manually activated by admin after Paystack customer-bears-fee amount mismatch bug') WHERE tx_ref='MEM-PSK-33f44a3a-2eb5-49eb-b75f-0c91db179098-1780843194105';

@@ -1,0 +1,1 @@
+UPDATE public.platform_config SET distribution_active = true WHERE id = 1;

@@ -1,0 +1,1 @@
+DELETE FROM public.daily_task WHERE user_id = '86f8cbbe-0247-4d15-9335-9ea52fbf6bb3' AND task_date = CURRENT_DATE;

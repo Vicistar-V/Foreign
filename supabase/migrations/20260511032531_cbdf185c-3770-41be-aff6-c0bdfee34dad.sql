@@ -1,0 +1,1 @@
+UPDATE public.profiles SET is_member = true WHERE id = '545f631e-40fd-4cba-a718-bd8d9c811e2b';

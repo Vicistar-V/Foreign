@@ -1,0 +1,2 @@
+ALTER TABLE public.platform_config
+ADD COLUMN IF NOT EXISTS whatsapp_group_promo_enabled boolean NOT NULL DEFAULT true;

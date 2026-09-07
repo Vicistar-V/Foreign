@@ -1,0 +1,272 @@
+{
+  "01_home_top_headline_and_get_a_share_button": {
+    "id": "01_home_top_headline_and_get_a_share_button",
+    "label": "Home page top: big headline and the Get A Share button",
+    "shows": "The very first thing a visitor sees — headline, promise line and the green button that starts everything.",
+    "group": "pub",
+    "file": "01_home_top_headline_and_get_a_share_button.mp4",
+    "duration": 9.033,
+    "recorded_at": "2026-07-31 05:36:14"
+  },
+  "02_home_scroll_real_people_and_bank_alert_proof": {
+    "id": "02_home_scroll_real_people_and_bank_alert_proof",
+    "label": "Home page scroll: real people and real bank alerts",
+    "shows": "Slow scroll past the faces and the screenshots of money landing in people's bank accounts.",
+    "group": "pub",
+    "file": "02_home_scroll_real_people_and_bank_alert_proof.mp4",
+    "duration": 8.2,
+    "recorded_at": "2026-07-31 05:36:33"
+  },
+  "03_home_how_it_works_three_steps": {
+    "id": "03_home_how_it_works_three_steps",
+    "label": "Home page: the How It Works three steps",
+    "shows": "Scrolls to and holds on the 3-step explanation of how a share turns into money.",
+    "group": "pub",
+    "file": "03_home_how_it_works_three_steps.mp4",
+    "duration": 12.066,
+    "recorded_at": "2026-07-31 05:36:56"
+  },
+  "04_home_price_5000_a_share_pays_10000": {
+    "id": "04_home_price_5000_a_share_pays_10000",
+    "label": "Home page: one share costs ₦5,000 and pays ₦10,000",
+    "shows": "The pricing block, so the viewer reads the numbers themselves instead of taking our word for it.",
+    "group": "pub",
+    "file": "04_home_price_5000_a_share_pays_10000.mp4",
+    "duration": 12.466,
+    "recorded_at": "2026-07-31 05:37:20"
+  },
+  "05_home_bottom_last_answers_and_footer": {
+    "id": "05_home_bottom_last_answers_and_footer",
+    "label": "Home page bottom: last answers and footer",
+    "shows": "The end of the home page — closing questions, links, footer.",
+    "group": "pub",
+    "file": "05_home_bottom_last_answers_and_footer.mp4",
+    "duration": 9.833,
+    "recorded_at": "2026-07-31 05:37:40"
+  },
+  "06_faq_page_scroll_questions_people_ask": {
+    "id": "06_faq_page_scroll_questions_people_ask",
+    "label": "FAQ page scroll: the questions people always ask",
+    "shows": "Slow scroll down the public questions-and-answers page.",
+    "group": "pub",
+    "file": "06_faq_page_scroll_questions_people_ask.mp4",
+    "duration": 7.933,
+    "recorded_at": "2026-07-31 05:37:59"
+  },
+  "07_results_page_scroll_people_already_paid": {
+    "id": "07_results_page_scroll_people_already_paid",
+    "label": "Results page scroll: people who have already been paid",
+    "shows": "The public payout board — names and amounts already sent out.",
+    "group": "pub",
+    "file": "07_results_page_scroll_people_already_paid.mp4",
+    "duration": 7.067,
+    "recorded_at": "2026-07-31 05:38:19"
+  },
+  "10_signup_page_opens_empty_form": {
+    "id": "10_signup_page_opens_empty_form",
+    "label": "Sign up: the link opens on a clean, empty form",
+    "shows": "Fresh sign-up screen loading, nothing filled in yet.",
+    "group": "signup",
+    "file": "10_signup_page_opens_empty_form.mp4",
+    "duration": 7.133,
+    "recorded_at": "2026-07-31 05:38:37"
+  },
+  "11_signup_pick_birth_year": {
+    "id": "11_signup_pick_birth_year",
+    "label": "Sign up step 1: tapping the birth year",
+    "shows": "The year wheel opens and a year is picked by hand.",
+    "group": "signup",
+    "file": "11_signup_pick_birth_year.mp4",
+    "duration": 4.8,
+    "recorded_at": "2026-07-31 05:38:51"
+  },
+  "12_signup_pick_birth_month": {
+    "id": "12_signup_pick_birth_month",
+    "label": "Sign up step 2: tapping the birth month",
+    "shows": "The month buttons, one gets picked, form moves on.",
+    "group": "signup",
+    "file": "12_signup_pick_birth_month.mp4",
+    "duration": 4.767,
+    "recorded_at": "2026-07-31 05:39:06"
+  },
+  "13_signup_pick_state_of_residence": {
+    "id": "13_signup_pick_state_of_residence",
+    "label": "Sign up step 3: picking the state you live in",
+    "shows": "The state list opens and Lagos is chosen.",
+    "group": "signup",
+    "file": "13_signup_pick_state_of_residence.mp4",
+    "duration": 5.833,
+    "recorded_at": "2026-07-31 05:39:24"
+  },
+  "14_signup_type_full_name_must_match_bank": {
+    "id": "14_signup_type_full_name_must_match_bank",
+    "label": "Sign up step 4: typing the name that matches the bank account",
+    "shows": "Name typed letter by letter with the bank-matching warning clearly on screen.",
+    "group": "signup",
+    "file": "14_signup_type_full_name_must_match_bank.mp4",
+    "duration": 8.167,
+    "recorded_at": "2026-07-31 05:39:45"
+  },
+  "15_signup_type_phone_email_password": {
+    "id": "15_signup_type_phone_email_password",
+    "label": "Sign up step 5: phone number, email and password typed in",
+    "shows": "The last details being typed, ready to create the account.",
+    "group": "signup",
+    "file": "15_signup_type_phone_email_password.mp4",
+    "duration": 9.467,
+    "recorded_at": "2026-07-31 05:40:09"
+  },
+  "16_signup_tap_create_account_lands_on_dashboard": {
+    "id": "16_signup_tap_create_account_lands_on_dashboard",
+    "label": "Sign up finish: tap Create Account and land inside",
+    "shows": "The button press and the jump into the brand-new account.",
+    "group": "signup",
+    "file": "16_signup_tap_create_account_lands_on_dashboard.mp4",
+    "duration": 6.4,
+    "recorded_at": "2026-07-31 05:40:32"
+  },
+  "20_dashboard_locked_account_ready_no_share_yet": {
+    "id": "20_dashboard_locked_account_ready_no_share_yet",
+    "label": "New account: dashboard is ready but no share is active yet",
+    "shows": "The locked-preview dashboard a person sees before they pay.",
+    "group": "fresh",
+    "file": "20_dashboard_locked_account_ready_no_share_yet.mp4",
+    "duration": 10.333,
+    "recorded_at": "2026-07-31 05:40:58"
+  },
+  "21_dashboard_tap_i_want_a_share_button": {
+    "id": "21_dashboard_tap_i_want_a_share_button",
+    "label": "New account: tapping the I Want A Share button",
+    "shows": "The floating green button being pressed.",
+    "group": "fresh",
+    "file": "21_dashboard_tap_i_want_a_share_button.mp4",
+    "duration": 6.4,
+    "recorded_at": "2026-07-31 05:41:18"
+  },
+  "22_share_calculator_opens_on_one_share": {
+    "id": "22_share_calculator_opens_on_one_share",
+    "label": "Share calculator opens, sitting on one share",
+    "shows": "The how-many-shares drawer sliding up, showing 1 share.",
+    "group": "fresh",
+    "file": "22_share_calculator_opens_on_one_share.mp4",
+    "duration": 5.6,
+    "recorded_at": "2026-07-31 05:41:41"
+  },
+  "23_calculator_one_share_pay_5000_get_10000": {
+    "id": "23_calculator_one_share_pay_5000_get_10000",
+    "label": "Calculator on 1 share: pay ₦5,000, get ₦10,000",
+    "shows": "The single-share maths held on screen long enough to read.",
+    "group": "fresh",
+    "file": "23_calculator_one_share_pay_5000_get_10000.mp4",
+    "duration": 6.633,
+    "recorded_at": "2026-07-31 05:42:04"
+  },
+  "24_calculator_tap_plus_to_five_shares_25000_gets_50000": {
+    "id": "24_calculator_tap_plus_to_five_shares_25000_gets_50000",
+    "label": "Calculator: tapping plus up to 5 shares, ₦25,000 → ₦50,000",
+    "shows": "The plus button pressed four times and the numbers climbing.",
+    "group": "fresh",
+    "file": "24_calculator_tap_plus_to_five_shares_25000_gets_50000.mp4",
+    "duration": 15.6,
+    "recorded_at": "2026-07-31 05:42:35"
+  },
+  "25_calculator_tap_the_pay_button": {
+    "id": "25_calculator_tap_the_pay_button",
+    "label": "Calculator: tapping the Pay button",
+    "shows": "Final amount checked, then the pay button pressed.",
+    "group": "fresh",
+    "file": "25_calculator_tap_the_pay_button.mp4",
+    "duration": 8.433,
+    "recorded_at": "2026-07-31 05:43:02"
+  },
+  "26_bank_transfer_page_account_number_to_send_to": {
+    "id": "26_bank_transfer_page_account_number_to_send_to",
+    "label": "Payment page: the bank account number to transfer to",
+    "shows": "One bank transfer, the account details and the amount, nothing else to do.",
+    "group": "fresh",
+    "file": "26_bank_transfer_page_account_number_to_send_to.mp4",
+    "duration": 15.167,
+    "recorded_at": "2026-07-31 05:43:43"
+  },
+  "30_dashboard_live_after_payment_five_shares_active": {
+    "id": "30_dashboard_live_after_payment_five_shares_active",
+    "label": "Paid account: dashboard live with 5 shares active",
+    "shows": "The moment after payment lands — the real, unlocked dashboard with the payout gauge.",
+    "group": "member",
+    "file": "30_dashboard_live_after_payment_five_shares_active.mp4",
+    "duration": 9.133,
+    "recorded_at": "2026-07-31 06:06:12"
+  },
+  "31_dashboard_scroll_wallet_ready_money_and_pending_money": {
+    "id": "31_dashboard_scroll_wallet_ready_money_and_pending_money",
+    "label": "Paid account: wallet — money ready now and money still coming",
+    "shows": "Scrolls onto the two money tiles: ready to withdraw, and pending until the campaign finishes.",
+    "group": "member",
+    "file": "31_dashboard_scroll_wallet_ready_money_and_pending_money.mp4",
+    "duration": 12.067,
+    "recorded_at": "2026-07-31 06:10:55"
+  },
+  "32_dashboard_campaign_gauge_filling_towards_full_payout": {
+    "id": "32_dashboard_campaign_gauge_filling_towards_full_payout",
+    "label": "Paid account: the campaign gauge filling towards full payout",
+    "shows": "The big round progress gauge and the percent filled.",
+    "group": "member",
+    "file": "32_dashboard_campaign_gauge_filling_towards_full_payout.mp4",
+    "duration": 12.0,
+    "recorded_at": "2026-07-31 06:11:19"
+  },
+  "33_task_page_todays_two_pictures_to_compare": {
+    "id": "33_task_page_todays_two_pictures_to_compare",
+    "label": "Daily job: today's two pictures waiting to be compared",
+    "shows": "The picture-rating screen as it opens, both pictures shown.",
+    "group": "member",
+    "file": "33_task_page_todays_two_pictures_to_compare.mp4",
+    "duration": 6.433,
+    "recorded_at": "2026-07-31 06:07:21"
+  },
+  "34_task_tap_the_better_picture_and_submit": {
+    "id": "34_task_tap_the_better_picture_and_submit",
+    "label": "Daily job: tapping the better picture and submitting it",
+    "shows": "A real pick being made, the choice highlighting, submit pressed and money added.",
+    "group": "member",
+    "file": "34_task_tap_the_better_picture_and_submit.mp4",
+    "duration": 15.767,
+    "recorded_at": "2026-07-31 06:07:52"
+  },
+  "35_withdraw_page_opens_with_bank_and_balance": {
+    "id": "35_withdraw_page_opens_with_bank_and_balance",
+    "label": "Cash out: withdraw page with the saved bank and balance",
+    "shows": "The withdraw screen at rest — bank account on file, how much can leave today.",
+    "group": "member",
+    "file": "35_withdraw_page_opens_with_bank_and_balance.mp4",
+    "duration": 6.433,
+    "recorded_at": "2026-07-31 06:08:12"
+  },
+  "36_withdraw_type_amount_and_see_what_lands": {
+    "id": "36_withdraw_type_amount_and_see_what_lands",
+    "label": "Cash out: typing the amount and seeing what actually lands",
+    "shows": "Amount typed on the keypad with the fee and final figure updating live.",
+    "group": "member",
+    "file": "36_withdraw_type_amount_and_see_what_lands.mp4",
+    "duration": 12.533,
+    "recorded_at": "2026-07-31 06:08:38"
+  },
+  "37_invite_page_your_link_and_friend_bonus": {
+    "id": "37_invite_page_your_link_and_friend_bonus",
+    "label": "Invite page: your own link and the bonus per friend",
+    "shows": "Scroll through the invite screen — personal link, code, and what each friend who activates pays you.",
+    "group": "member",
+    "file": "37_invite_page_your_link_and_friend_bonus.mp4",
+    "duration": 9.833,
+    "recorded_at": "2026-07-31 06:11:41"
+  },
+  "38_money_history_every_payment_written_down": {
+    "id": "38_money_history_every_payment_written_down",
+    "label": "Money history: every naira in and out, written down",
+    "shows": "The transactions list scrolling — each picture-rating reward and every payout on record.",
+    "group": "member",
+    "file": "38_money_history_every_payment_written_down.mp4",
+    "duration": 10.467,
+    "recorded_at": "2026-07-31 06:12:05"
+  }
+}

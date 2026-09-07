@@ -1,0 +1,1 @@
+UPDATE public.platform_config SET task_naira_per_batch = 90, updated_at = now() WHERE id = 1;

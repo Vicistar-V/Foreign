@@ -1,0 +1,1 @@
+UPDATE public.platform_config SET membership_fee = 3000 WHERE id = 1;

@@ -1,0 +1,1 @@
+UPDATE public.platform_config SET payment_provider = 'flutterwave', updated_at = now() WHERE id = 1;

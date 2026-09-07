@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.refresh_user_cache(uuid);

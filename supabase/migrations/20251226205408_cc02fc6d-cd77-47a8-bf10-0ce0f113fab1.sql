@@ -1,0 +1,1 @@
+DELETE FROM public.transactions WHERE user_id = '5d7a5ea2-034c-4665-86b6-816d81dc0330'

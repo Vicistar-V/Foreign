@@ -1,0 +1,273 @@
+project_id = "sbprvewcfrtazdlcfvxt"
+
+[auth]
+enabled = true
+
+# ===========================
+# THE VIKETA LINE (Drop System)
+# ===========================
+[functions.buy-spot]
+verify_jwt = true
+
+
+
+[functions.distribute-liquidity]
+verify_jwt = false
+
+[functions.get-live-activity]
+verify_jwt = false
+
+# ===========================
+# CORE USER FUNCTIONS
+# ===========================
+
+[functions.get-dashboard-data]
+verify_jwt = true
+
+[functions.get-transactions]
+verify_jwt = true
+
+[functions.create-pin]
+verify_jwt = true
+
+[functions.change-pin]
+verify_jwt = true
+
+[functions.verify-pin]
+verify_jwt = true
+
+[functions.change-password]
+verify_jwt = true
+
+[functions.update-name]
+verify_jwt = true
+
+[functions.update-phone]
+verify_jwt = true
+
+[functions.upload-avatar]
+verify_jwt = true
+
+[functions.reject-avatar]
+verify_jwt = true
+
+[functions.update-heartbeat]
+verify_jwt = true
+
+# ===========================
+# PAYMENT & WITHDRAWAL
+# ===========================
+[functions.initiate-deposit]
+verify_jwt = true
+
+[functions.initiate-withdrawal]
+verify_jwt = true
+
+[functions.verify-payment]
+verify_jwt = true
+
+[functions.add-bank-account]
+verify_jwt = true
+
+
+[functions.sync-banks]
+verify_jwt = true
+
+[functions.transfer-between-wallets]
+verify_jwt = true
+
+# ===========================
+# FLUTTERWAVE INTEGRATION
+# ===========================
+[functions.flutterwave-webhook]
+verify_jwt = false
+
+[functions.flutterwave-callback]
+verify_jwt = false
+
+[functions.verify-pending-withdrawals]
+verify_jwt = false
+
+[functions.get-flutterwave-data]
+verify_jwt = true
+
+[functions.admin-flutterwave-transfer]
+verify_jwt = true
+
+[functions.get-flutterwave-audit-logs]
+verify_jwt = true
+
+# ===========================
+# MONIEPOINT (BANK TRANSFER) INTEGRATION
+# ===========================
+[functions.initiate-moniepoint-payment]
+verify_jwt = true
+
+
+[functions.confirm-moniepoint-sender]
+verify_jwt = true
+
+[functions.admin-approve-payment-attempt]
+verify_jwt = true
+
+[functions.moniepoint-email-webhook]
+verify_jwt = false
+
+# ===========================
+# PAYSTACK (BANK TRANSFER) INTEGRATION
+# ===========================
+[functions.initiate-paystack-payment]
+verify_jwt = true
+
+[functions.paystack-callback]
+verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+# Live provider dispatcher — reads platform_config.payment_provider
+# at click-time so admin switches take effect instantly.
+[functions.start-payment]
+verify_jwt = true
+
+
+
+
+# ===========================
+# REFERRALS
+# ===========================
+[functions.get-referral-details]
+verify_jwt = true
+
+[functions.get-referral-tree]
+verify_jwt = true
+
+# ===========================
+# ADMIN FUNCTIONS
+# ===========================
+[functions.credit-bonus]
+verify_jwt = true
+
+[functions.get-admin-dashboard-analytics]
+verify_jwt = true
+
+[functions.get-user-growth-trend]
+verify_jwt = true
+
+[functions.get-admin-stats]
+verify_jwt = true
+
+[functions.get-all-users]
+verify_jwt = true
+
+[functions.get-user-details]
+verify_jwt = true
+
+[functions.search-users]
+verify_jwt = true
+
+[functions.admin-set-membership]
+verify_jwt = true
+
+[functions.admin-deposit-action]
+verify_jwt = true
+
+[functions.admin-ban-action]
+verify_jwt = true
+
+[functions.admin-alert-action]
+verify_jwt = true
+
+[functions.admin-edit-profile]
+verify_jwt = true
+
+[functions.admin-payment-action]
+verify_jwt = true
+
+[functions.admin-withdrawal-action]
+verify_jwt = true
+
+[functions.get-pending-withdrawals]
+verify_jwt = true
+
+[functions.get-system-logs]
+verify_jwt = true
+
+[functions.get-chart-drilldown]
+verify_jwt = true
+
+[functions.toggle-maintenance]
+verify_jwt = true
+
+# ===========================
+# PLATFORM CONFIG
+# ===========================
+[functions.get-platform-config]
+verify_jwt = false
+
+
+# ===========================
+# SUPPORT TICKETS
+# ===========================
+[functions.get-support-tickets]
+verify_jwt = true
+
+[functions.create-support-ticket]
+verify_jwt = true
+
+[functions.add-ticket-message]
+verify_jwt = true
+
+[functions.update-ticket-status]
+verify_jwt = true
+
+[functions.get-ticket-detail]
+verify_jwt = true
+
+# ===========================
+# NOTIFICATIONS & TELEGRAM
+# ===========================
+[functions.notifications]
+verify_jwt = true
+
+[functions.notification-worker]
+verify_jwt = false
+
+[functions.send-admin-notification]
+verify_jwt = true
+
+[functions.send-telegram-alert]
+verify_jwt = false
+
+[functions.send-daily-summary]
+verify_jwt = false
+
+[functions.telegram-bot-webhook]
+verify_jwt = false
+
+[functions.setup-telegram-bot]
+verify_jwt = false
+
+# ===========================
+# PUBLIC SIGNUP FUNCTIONS
+# ===========================
+[functions.public-name-lookup]
+verify_jwt = false
+
+# ===========================
+# NODE CALIBRATION SYSTEM
+# ===========================
+[functions.record-calibration-click]
+verify_jwt = true
+
+[functions.get-calibration-status]
+verify_jwt = true
+
+[functions.process-calibration-settlement]
+verify_jwt = false
+
+[functions.notify-signup]
+verify_jwt = true
+
+[functions.admin-impersonate-user]
+verify_jwt = true

@@ -1,0 +1,1 @@
+UPDATE public.profiles SET birth_year = NULL, birth_month = NULL WHERE id = '545f631e-40fd-4cba-a718-bd8d9c811e2b';

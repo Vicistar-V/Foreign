@@ -1,0 +1,1 @@
+ALTER TYPE public.ticket_sender_type ADD VALUE IF NOT EXISTS 'ai';
