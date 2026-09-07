@@ -1,7 +1,7 @@
 // Facebook Pixel tracking library for viketa.xyz
 // Pixel (dataset) ID: 1580276863536035
 // Updated: Aug 2026
-export const FB_PIXEL_ID = '1580276863536035';
+export const FB_PIXEL_ID = '2479867182433266';
 
 // Declare fbq on window
 declare global {
