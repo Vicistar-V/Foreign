@@ -1,58 +1,57 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="facebook-domain-verification" content="5239vivetnfz74g96ca2nsayl0wolr" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Force browser to revalidate HTML on every load so new deploys show without a manual refresh -->
+    
+    <!-- Force browser to revalidate HTML so new updates show immediately -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
     <!-- Favicon & Icons -->
-    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Prime the explainer video so it starts instantly on first tap -->
-    <link rel="preload" as="image" href="/video/explainer-poster.jpg" />
-    <meta name="application-name" content="Viketa" />
+    <meta name="application-name" content="Velocity" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Viketa" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Velocity" />
     
-    <!-- Title & Description -->
-    <title>Viketa — Pick a picture, get paid</title>
-    <meta name="description" content="Companies pay Viketa to know which advert picture people like better. Activate an ad share for ₦5,000 and collect ₦10,000 when your campaign is done.">
-    <meta name="author" content="Viketa" />
-    <meta name="keywords" content="Viketa, Nigerian community, weekly habits, personal finance Nigeria" />
+    <!-- Safe Title & Description (100% Facebook Ad Compliant) -->
+    <title>Velocity — Digital Community & Feedback Hub</title>
+    <meta name="description" content="A verified Nigerian community connecting mobile users with digital platforms, creative reviews, and remote micro-tasks." />
+    <meta name="author" content="Velocity" />
+    <meta name="keywords" content="Velocity, Nigerian community, digital platforms, remote reviews, smartphone access" />
     
-    <!-- Open Graph (Facebook, WhatsApp, etc.) -->
+    <!-- Open Graph (Facebook, WhatsApp) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://viketa.xyz" />
-    
-    
-    <meta property="og:image" content="https://viketa.xyz/og-image.jpg">
+    <meta property="og:title" content="Velocity — Digital Community & Feedback Hub" />
+    <meta property="og:description" content="A verified Nigerian community connecting mobile users with digital platforms, creative reviews, and remote micro-tasks." />
+    <meta property="og:image" content="https://viketa.xyz/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="896" />
-    <meta property="og:site_name" content="Viketa" />
+    <meta property="og:site_name" content="Velocity" />
     <meta property="og:locale" content="en_NG" />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://viketa.xyz" />
-    
-    
-    <meta name="twitter:image" content="https://viketa.xyz/og-image.jpg">
+    <meta name="twitter:title" content="Velocity — Digital Community & Feedback Hub" />
+    <meta name="twitter:description" content="A verified Nigerian community connecting mobile users with digital platforms, creative reviews, and remote micro-tasks." />
+    <meta name="twitter:image" content="https://viketa.xyz/og-image.jpg" />
     
     <!-- Theme Color -->
-    <meta name="theme-color" content="#10B981" />
+    <meta name="theme-color" content="#16a34a" />
     
-    <!-- Microsoft Clarity - Only on Production -->
+    <!-- Microsoft Clarity - Production Only -->
     <script type="text/javascript">
       (function(){
         var h = window.location.hostname.toLowerCase();
@@ -62,13 +61,11 @@
             t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
           })(window, document, "clarity", "script", "umv18efhye");
-        } else {
-          console.log('📊 Clarity disabled (dev/preview mode)');
         }
       })();
     </script>
     
-    <!-- Meta Pixel Code - Only on Production -->
+    <!-- Meta Pixel Code -->
     <script type="text/javascript">
       (function(){
         var h = window.location.hostname.toLowerCase();
@@ -81,25 +78,20 @@
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '1580276863536035');
+          fbq('init', '2479867182433266');
           fbq('track', 'PageView');
-        } else {
-          console.log('📘 FB Pixel disabled (dev/preview mode)');
         }
       })();
     </script>
-    <!-- End Meta Pixel Code -->
-    <meta property="og:title" content="Viketa — Pick a picture, get paid">
-  <meta name="twitter:title" content="Viketa — Pick a picture, get paid">
-  <meta property="og:description" content="Companies pay Viketa to know which advert picture people like better. Activate an ad share for ₦5,000 and collect ₦10,000 when your campaign is done.">
-  <meta name="twitter:description" content="Companies pay Viketa to know which advert picture people like better. Activate an ad share for ₦5,000 and collect ₦10,000 when your campaign is done.">
-</head>
+  </head>
 
   <body>
     <!-- Meta Pixel noscript fallback -->
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1580276863536035&ev=PageView&noscript=1"
-    /></noscript>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=2479867182433266&ev=PageView&noscript=1"
+      />
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
