@@ -116,7 +116,8 @@ const App = () => (
           <InstallAppPrompt />
           <ImpersonationBanner />
           {/* CloakGate disabled — re-wrap <Routes> with <CloakGate>...</CloakGate> to re-enable */}
-          <Routes>
+          <CloakGate>
+            <Routes>
 
           {/* Public pages */}
           <Route path={appRoutes.home.path} element={<Index />} />
@@ -224,6 +225,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </CloakGate>
           {/* /CloakGate */}
           </BroadcastModalProvider>
           </TourProvider>
