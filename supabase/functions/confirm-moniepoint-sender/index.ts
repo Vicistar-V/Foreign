@@ -1,10 +1,5 @@
 // Confirm sender bank details for a Moniepoint payment attempt.
-// Called when the user clicks "I have made payment" — provides a fallback
-// match channel for cases where the email-webhook auto-match missed.
-//
-// Also re-scans unmatched_moniepoint_payments for a recent transfer that
-// matches this attempt's amount + sender, and if it finds a clean one,
-// credits the user immediately via the shared matcher path.
+// Supports both signed-in members AND guest checkouts from ads.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import {
@@ -36,14 +31,20 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // 1. Softly identify the user if logged in, but DO NOT block if guest
+    let userId: string | null = null;
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return json({ error: 'Not signed in' }, 200);
+    if (authHeader?.startsWith('Bearer ')) {
+      const jwt = authHeader.replace('Bearer ', '');
+      try {
+        const { data: { user } } = await supabase.auth.getUser(jwt);
+        if (user) {
+          userId = user.id;
+        }
+      } catch {
+        // Guest or anon key — proceed
+      }
     }
-    const jwt = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(jwt);
-    if (authErr || !user) return json({ error: 'Not signed in' }, 200);
-    const userId = user.id;
 
     const body = await req.json().catch(() => ({}));
     const {
@@ -61,7 +62,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Pick the bank you sent from' }, 200);
     }
 
-    // Load the attempt and verify ownership
+    // 2. Load the attempt
     const { data: attempt, error: aErr } = await supabase
       .from('payment_attempts')
       .select('id, user_id, status, unique_amount, amount, purpose, metadata')
@@ -69,13 +70,21 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (aErr || !attempt) return json({ error: 'Payment not found' }, 200);
-    if (attempt.user_id !== userId) return json({ error: 'Not allowed' }, 200);
+
+    const isGuest = (attempt.metadata as any)?.is_guest === true || !attempt.user_id;
+
+    // Only enforce strict user check if this attempt belongs to a real signed-in account
+    if (!isGuest && userId && attempt.user_id !== userId) {
+      return json({ error: 'Not allowed' }, 200);
+    }
+
+    const targetUserId = attempt.user_id || userId;
 
     if (attempt.status === 'verified') {
       return json({ success: true, already_verified: true });
     }
 
-    // Update sender info on the attempt
+    // 3. Update sender info on the attempt
     const { error: updErr } = await supabase
       .from('payment_attempts')
       .update({
@@ -89,8 +98,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Could not save details', details: updErr.message }, 200);
     }
 
-    // Try to auto-credit right now: look for an unresolved raw email-webhook
-    // event that matches this attempt's amount (±5 tolerance for fat-fingers).
+    // 4. Try to auto-credit right now if a matching transaction already arrived
     const expected = Number(attempt.unique_amount);
     const { data: candidates } = await supabase
       .from('unmatched_moniepoint_payments')
@@ -104,10 +112,7 @@ Deno.serve(async (req) => {
     let credited = false;
     let match_result: any = null;
 
-    if (candidates && candidates.length > 0) {
-      // Delegate to the same atomic RPC used by the auto-flow.
-      // The RPC re-verifies name match against profiles, so we can safely try
-      // the newest candidate first.
+    if (candidates && candidates.length > 0 && targetUserId) {
       for (const c of candidates) {
         const senderName =
           (c.raw_payload as any)?.sender_name || c.sender_account_name;
@@ -130,7 +135,7 @@ Deno.serve(async (req) => {
         }
 
         const r = (rpcRes ?? {}) as any;
-        if (r.matched && r.user_id === userId) {
+        if (r.matched && (r.user_id === targetUserId || !r.user_id)) {
           const paymentRef = r.payment_ref as string;
           const paidAmount = Number(r.paid_amount);
           const purpose = r.purpose as 'membership' | 'deposit';
@@ -148,7 +153,7 @@ Deno.serve(async (req) => {
                 Number((attempt as any).metadata?.auto_buy_spots) || 0;
               if (purpose === 'membership') {
                 await creditMembership(supabase, {
-                  userId,
+                  userId: targetUserId,
                   paymentRef,
                   paidAmount,
                   source: 'moniepoint_webhook',
@@ -157,7 +162,7 @@ Deno.serve(async (req) => {
                 });
               } else {
                 await creditDeposit(supabase, {
-                  userId,
+                  userId: targetUserId,
                   paymentRef,
                   amount: paidAmount,
                   source: 'moniepoint_webhook',
