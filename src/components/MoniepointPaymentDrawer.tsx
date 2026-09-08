@@ -8,15 +8,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, Copy, Check, CheckCircle2, ArrowRight,
   ShieldCheck, Lock, X, ArrowLeft, BadgeCheck, Radio,
+  ExternalLink, AlertCircle, Ban, Sparkles
 } from 'lucide-react';
 import { BankCommandSelect } from './BankCommandSelect';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { setPayUrlParam, clearPayUrlParam } from '@/lib/payUrlSync';
 import { triggerHaptic } from '@/lib/haptics';
-import { useDropStatus } from '@/hooks/useDropStatus';
-import { usePlatformConfig } from '@/hooks/usePlatformConfig';
-// NOTE: Facebook Purchase tracking is centralized in useFBPurchaseSync.
 
 interface MoniepointPaymentDrawerProps {
   open: boolean;
@@ -25,7 +23,6 @@ interface MoniepointPaymentDrawerProps {
   purpose?: 'deposit' | 'membership';
   autoBuySpots?: number;
   expectedPayout?: number;
-  /** When set, drawer rehydrates an existing pending attempt (URL-restore). */
   resumeAttemptId?: string;
   onSuccess?: () => void;
 }
@@ -41,21 +38,13 @@ interface InitiatedPayment {
     account_name: string;
     bank_name: string;
   };
-  auto_buy_spots?: number;
-  expected_payout?: number;
 }
 
-
 const REVEAL_PAID_BUTTON_AFTER_MS = 20_000;
-// After this long with no admin confirmation we soften the wording so users
-// know they can close the page — payment will be confirmed in the background.
 const SOFTEN_WAITING_AFTER_MS = 60_000;
 
 type Phase = 'initializing' | 'pay' | 'confirm' | 'success' | 'error';
 
-/* ---------------- helpers ---------------- */
-
-// Friendly labels for the confirmation toast (Grandma-simple)
 const COPY_LABELS: Record<string, string> = {
   acct: 'Account number',
   amount: 'Amount',
@@ -64,14 +53,12 @@ const COPY_LABELS: Record<string, string> = {
 };
 
 async function writeToClipboard(value: string): Promise<boolean> {
-  // Modern API
   try {
     if (navigator?.clipboard?.writeText) {
       await navigator.clipboard.writeText(value);
       return true;
     }
-  } catch { /* fall through to legacy */ }
-  // Legacy fallback for older mobile browsers / in-app webviews
+  } catch { /* legacy */ }
   try {
     const ta = document.createElement('textarea');
     ta.value = value;
@@ -138,7 +125,6 @@ function ReceiptRow({
   onCopy: (k: string, v: string) => void;
   copied: boolean;
   emphasize?: boolean;
-  /** Value that actually gets written to clipboard (defaults to `value`). */
   copyValue?: string;
 }) {
   const handleCopy = () => onCopy(copyKey, copyValue ?? value);
@@ -191,29 +177,16 @@ function ReceiptRow({
   );
 }
 
-/* ---------------- main ---------------- */
-
 export const MoniepointPaymentDrawer = ({
   open,
   onOpenChange,
   amount,
-  purpose = 'deposit',
-  autoBuySpots = 0,
-  expectedPayout,
+  purpose = 'membership',
   resumeAttemptId,
   onSuccess,
 }: MoniepointPaymentDrawerProps) => {
   const queryClient = useQueryClient();
   const { copiedKey, copy } = useCopy();
-  const { data: dropStatus } = useDropStatus();
-  const { data: platformConfig } = usePlatformConfig();
-
-  // Server may override purpose/amount when resuming an existing attempt.
-  const [resolvedPurpose, setResolvedPurpose] = useState<'deposit' | 'membership'>(purpose);
-  const [resolvedAmount, setResolvedAmount] = useState<number>(amount);
-  const [resolvedAutoBuySpots, setResolvedAutoBuySpots] = useState<number>(autoBuySpots);
-  const [resolvedExpectedPayout, setResolvedExpectedPayout] = useState<number | undefined>(expectedPayout);
-
 
   const [phase, setPhase] = useState<Phase>('initializing');
   const [payment, setPayment] = useState<InitiatedPayment | null>(null);
@@ -242,16 +215,13 @@ export const MoniepointPaymentDrawer = ({
     staleTime: 24 * 60 * 60 * 1000,
   });
 
-  // Reset on close (and clear the URL param) — but ONLY on a real
-  // open→closed transition, never on initial mount, otherwise we would
-  // wipe the ?pay=<id> param the Host is about to read on a fresh reload.
   const wasOpenRef = useRef(false);
   useEffect(() => {
     if (open) {
       wasOpenRef.current = true;
       return;
     }
-    if (!wasOpenRef.current) return; // first-mount no-op
+    if (!wasOpenRef.current) return;
     wasOpenRef.current = false;
     clearPayUrlParam();
     setTimeout(() => {
@@ -264,17 +234,10 @@ export const MoniepointPaymentDrawer = ({
       setSenderBankName('');
       setSenderAccount('');
       setConfirming(false);
-      setResolvedPurpose(purpose);
-      setResolvedAmount(amount);
-      setResolvedAutoBuySpots(autoBuySpots);
-      setResolvedExpectedPayout(expectedPayout);
       initiatedRef.current = false;
     }, 250);
-  }, [open, purpose, amount, autoBuySpots, expectedPayout]);
+  }, [open]);
 
-
-
-  // Lock body scroll while open
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -282,35 +245,24 @@ export const MoniepointPaymentDrawer = ({
     return () => { document.body.style.overflow = prev; };
   }, [open]);
 
-  // Auto-initiate (or resume from URL when resumeAttemptId is provided)
+  // Auto-initiate or resume
   useEffect(() => {
     if (!open || initiatedRef.current) return;
     initiatedRef.current = true;
 
-    // Abort-guard: if the user closes the drawer (open→false) before the
-    // network response lands, we must NOT setPayUrlParam or setPhase — the
-    // drawer is meant to be gone. Without this the URL gets re-written to
-    // ?pay=<id> after close and the drawer pops back open on next reload.
     let cancelled = false;
 
     (async () => {
       try {
         const requestBody = resumeAttemptId
           ? { resume_attempt_id: resumeAttemptId }
-          : {
-              amount,
-              purpose,
-              auto_buy_spots: autoBuySpots,
-              expected_payout: expectedPayout,
-            };
+          : { amount: 1000, purpose: 'membership' };
 
         const { data, error } = await supabase.functions.invoke('initiate-moniepoint-payment', {
           body: requestBody,
         });
         if (cancelled) return;
         if (error || data?.error) {
-          // If the resumed attempt no longer exists (or isn't ours), just close
-          // silently — the URL param is stale.
           if (resumeAttemptId && data?.not_found) {
             clearPayUrlParam();
             onOpenChange(false);
@@ -321,19 +273,8 @@ export const MoniepointPaymentDrawer = ({
           return;
         }
         setPayment(data as InitiatedPayment);
-        if (data?.purpose) setResolvedPurpose(data.purpose);
-        if (typeof data?.base_amount === 'number') setResolvedAmount(data.base_amount);
-        setResolvedAutoBuySpots(Math.max(0, Number(data?.auto_buy_spots ?? autoBuySpots) || 0));
-        setResolvedExpectedPayout(
-          Number(data?.expected_payout ?? expectedPayout) > 0
-            ? Number(data?.expected_payout ?? expectedPayout)
-            : undefined,
-        );
-
-        // Persist the attempt id in the URL so reload restores this screen.
         if (data?.attempt_id) setPayUrlParam(data.attempt_id);
 
-        // If resuming and it's already verified, jump straight to success.
         if (data?.status === 'verified') {
           setPhase('success');
         } else {
@@ -349,10 +290,8 @@ export const MoniepointPaymentDrawer = ({
     return () => {
       cancelled = true;
     };
-  }, [open, amount, purpose, autoBuySpots, expectedPayout, resumeAttemptId, onOpenChange]);
+  }, [open, amount, purpose, resumeAttemptId, onOpenChange]);
 
-
-  // Reveal "I have paid" button + soften waiting copy after a longer wait
   useEffect(() => {
     if (phase !== 'pay') return;
     const t1 = setTimeout(() => setShowPaidButton(true), REVEAL_PAID_BUTTON_AFTER_MS);
@@ -360,8 +299,7 @@ export const MoniepointPaymentDrawer = ({
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [phase]);
 
-  // Poll via SECURITY DEFINER RPC so we never expose the payment_attempts
-  // table shape to the client. The RPC checks auth.uid() ownership server-side.
+  // Status polling every 8s
   useEffect(() => {
     if (!payment?.attempt_id || phase === 'success' || phase === 'initializing' || phase === 'error') return;
 
@@ -372,8 +310,6 @@ export const MoniepointPaymentDrawer = ({
       setPhase('success');
       queryClient.invalidateQueries({ queryKey: ['balances'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
       onSuccess?.();
     };
 
@@ -384,7 +320,6 @@ export const MoniepointPaymentDrawer = ({
       if (!cancelled && !error && data === 'verified') onVerified();
     };
 
-    // Check once immediately, then every 8s
     checkStatus();
     const poll = setInterval(checkStatus, 8000);
 
@@ -443,23 +378,14 @@ export const MoniepointPaymentDrawer = ({
   /* ---------------- Header ---------------- */
   const headerTitle =
     phase === 'confirm' ? 'Confirm your transfer'
-    : phase === 'success' ? 'Payment received'
+    : phase === 'success' ? 'Access Unlocked'
     : 'Secure Bank Transfer';
 
   const headerStep =
     phase === 'confirm' ? 'Step 2 of 2 — Tell us who sent it'
-    : phase === 'pay' ? 'Step 2 of 2 — Complete your transfer'
-    : phase === 'success' ? 'Done'
+    : phase === 'pay' ? 'Step 2 of 2 — Complete your ₦1,000 transfer'
+    : phase === 'success' ? 'Your 2 Verified Foreign Platforms'
     : 'Setting up';
-  const isMembershipFlow = resolvedPurpose === 'membership';
-  const spotsForOutcome = Math.max(
-    0,
-    Number(payment?.auto_buy_spots ?? resolvedAutoBuySpots ?? autoBuySpots) || 0,
-  );
-  const shouldShowPayoutPromise = resolvedPurpose === 'deposit' && spotsForOutcome > 0;
-  const currentTarget = Number(dropStatus?.user?.shared_drop?.target_amount ?? 0) || 0;
-  const payoutPerSpot = Number(platformConfig?.drop_target_amount ?? 10000) || 10000;
-  const promisedPayout = resolvedExpectedPayout || currentTarget + spotsForOutcome * payoutPerSpot;
 
   const onBack = () => {
     if (phase === 'confirm') setPhase('pay');
@@ -476,13 +402,17 @@ export const MoniepointPaymentDrawer = ({
           type="button"
           onClick={onBack}
           className="h-9 w-9 -ml-1 inline-flex items-center justify-center rounded-full hover:bg-muted active:scale-95 transition"
-          aria-label={isMembershipFlow ? 'Back to join the campaign' : 'Close'}
+          aria-label="Close"
         >
-          {phase === 'confirm' || isMembershipFlow ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+          {phase === 'confirm' ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
         </button>
         <div className="flex-1 min-w-0 text-center">
           <div className="inline-flex items-center gap-1.5">
-            <Lock className="h-3.5 w-3.5 text-success" />
+            {phase === 'success' ? (
+              <Sparkles className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <Lock className="h-3.5 w-3.5 text-success" />
+            )}
             <h1 className="text-sm font-bold text-foreground truncate">{headerTitle}</h1>
           </div>
           <p className="text-[11px] text-muted-foreground truncate">{headerStep}</p>
@@ -498,7 +428,7 @@ export const MoniepointPaymentDrawer = ({
     <div className="flex-1 flex items-center justify-center px-6">
       <div className="text-center space-y-3">
         <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto" />
-        <p className="text-sm text-muted-foreground">Setting up your secure account…</p>
+        <p className="text-sm text-muted-foreground">Setting up your secure transfer details…</p>
       </div>
     </div>
   );
@@ -520,41 +450,21 @@ export const MoniepointPaymentDrawer = ({
 
   const PayStep = payment && (
     <div className="px-4 py-4 space-y-4 pb-32">
-      {shouldShowPayoutPromise && (
-        <div className="flex items-center justify-center">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5">
-            <span className="text-[11px] font-semibold text-muted-foreground">
-              After this, your payout becomes
-            </span>
-            <span className="text-[13px] font-black tabular-nums text-foreground">
-              ₦{promisedPayout.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Trust info card */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-start gap-3">
           <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground">
-              {shouldShowPayoutPromise ? 'Send the exact amount to grow your payout' : 'Send the exact amount to this account'}
-            </p>
+            <p className="text-sm font-bold text-foreground">Send ₦1,000 to unlock instant access</p>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              {shouldShowPayoutPromise
-                ? 'Once your transfer lands, your new ad shares will be activated automatically.'
-                : 'Once your transfer lands, your wallet will be credited shortly — usually within a few minutes.'}
+              Make a transfer of exactly ₦1,000. Your platforms and cheat codes will be revealed right here on this screen immediately.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Unified receipt card */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        {/* Header strip */}
         <div className="px-4 py-2.5 bg-muted/40 border-b border-border flex items-center justify-between">
           <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground font-bold">
             Transfer Details
@@ -564,7 +474,6 @@ export const MoniepointPaymentDrawer = ({
           </div>
         </div>
 
-        {/* Account number is the MOST important thing to copy */}
         <ReceiptRow
           label="Account number"
           value={payment.business_account.account_number}
@@ -577,7 +486,7 @@ export const MoniepointPaymentDrawer = ({
         <div className="h-px bg-border" />
         <ReceiptRow
           label="Amount to send"
-          value={`₦${payment.unique_amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`₦${payment.unique_amount.toLocaleString()}`}
           mono
           copyKey="amount"
           copyValue={String(Math.round(payment.unique_amount))}
@@ -595,18 +504,16 @@ export const MoniepointPaymentDrawer = ({
         <div className="h-px bg-border" />
         <ReceiptRow
           label="Account name"
-          value={payment.business_account.account_name || 'Viketa'}
-          sub="Verified Platform Merchant"
+          value={payment.business_account.account_name || 'Velocity'}
+          sub="Verified Merchant"
           copyKey="name"
           onCopy={copy}
           copied={copiedKey === 'name'}
         />
       </div>
 
-      {/* Active monitoring */}
       <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center overflow-hidden relative">
         <div className="relative mx-auto h-14 w-14 mb-3">
-          {/* radar pulse */}
           <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
           <span className="absolute inset-2 rounded-full bg-primary/30 animate-pulse" />
           <span className="absolute inset-0 rounded-full flex items-center justify-center">
@@ -614,12 +521,12 @@ export const MoniepointPaymentDrawer = ({
           </span>
         </div>
         <p className="text-sm font-bold text-foreground">
-          {softenWaiting ? 'Still processing your transfer…' : 'Waiting for your transfer…'}
+          {softenWaiting ? 'Still confirming your payment…' : 'Waiting for your transfer…'}
         </p>
         <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed max-w-[280px] mx-auto">
           {softenWaiting
-            ? 'Your payment is being confirmed in the background. This can take up to 10 minutes. If nothing happens after that, tap "I have sent the money" below and give us your transfer details — we will credit you manually within the hour.'
-            : "We're confirming your transfer. Please don't close this page until you've completed the payment in your banking app."}
+            ? 'Your payment is being confirmed in the background. If delayed, tap "I have sent the money" below.'
+            : "We're monitoring for your ₦1,000 transfer. Do not close this page until you've sent it from your bank app."}
         </p>
       </div>
 
@@ -657,8 +564,7 @@ export const MoniepointPaymentDrawer = ({
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">Two quick details</p>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              These act as a backup so we can find your transfer instantly if anything
-              delays the auto-match.
+              Enter your sender bank details so we can match your ₦1,000 instantly.
             </p>
           </div>
         </div>
@@ -693,49 +599,110 @@ export const MoniepointPaymentDrawer = ({
             onChange={(e) => setSenderAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
             className="h-12 text-lg tabular-nums tracking-widest text-center"
           />
-          <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
-            The same account you used to send the ₦{Math.round(payment?.unique_amount ?? 0).toLocaleString()} transfer.
-          </p>
         </div>
       </div>
     </div>
   );
+
+  /* ---------------- SUCCESS STEP (REVEALS THE 2 PLATFORMS ON SCREEN) ---------------- */
 
   const SuccessStep = (
-    <div className="flex-1 flex items-center justify-center px-6">
-      <div className="w-full max-w-sm text-center space-y-5">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
-          className="mx-auto h-24 w-24 rounded-full bg-success/20 flex items-center justify-center"
-        >
-          <CheckCircle2 className="h-14 w-14 text-success" />
-        </motion.div>
+    <div className="px-4 py-5 space-y-4 pb-28">
+      {/* Confirmed Alert Badge */}
+      <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+        </div>
         <div>
-          <h3 className="text-2xl font-bold text-foreground">Payment received</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            {resolvedPurpose === 'membership'
-              ? 'Your account is now active. Welcome aboard!'
-              : shouldShowPayoutPromise
-                ? `Your transfer is in. Your payout will update to ₦${promisedPayout.toLocaleString()} shortly.`
-                : `₦${resolvedAmount.toLocaleString()} has been added to your wallet.`}
-
+          <h2 className="text-sm font-black text-foreground">Payment Confirmed (₦1,000)</h2>
+          <p className="text-[11px] text-muted-foreground">
+            Follow the instructions below carefully to start your tasks today.
           </p>
         </div>
-        <Button
-          onClick={() => onOpenChange(false)}
-          className="w-full h-12 rounded-xl"
-          haptic="success"
+      </div>
+
+      {/* PLATFORM 1: VELOCITY (OPEN & ACCEPTING WORKERS) */}
+      <div className="rounded-2xl border-2 border-emerald-500 bg-card p-5 space-y-4 shadow-sm relative overflow-hidden">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-1 rounded-full border border-emerald-500/30">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            PLATFORM 1 — ACCEPTING WORKERS NOW
+          </span>
+          <span className="text-[11px] font-bold text-muted-foreground">No VPN</span>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-black text-foreground tracking-tight">Velocity Global Tasks</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Foreign micro-task system • <strong className="text-foreground font-bold">~$1.60 per completed task</strong>
+          </p>
+        </div>
+
+        {/* Step-by-Step Cheat Code */}
+        <div className="bg-muted/40 rounded-xl p-3.5 space-y-2 text-xs border border-border">
+          <p className="font-bold text-foreground text-[11px] uppercase tracking-wider mb-1">
+            Exact Instructions To Follow:
+          </p>
+          <div className="flex items-start gap-2 text-foreground/90">
+            <span className="font-black text-emerald-600">1.</span>
+            <span>Click the green button below and register with your regular username & password.</span>
+          </div>
+          <div className="flex items-start gap-2 text-foreground/90">
+            <span className="font-black text-emerald-600">2.</span>
+            <span>
+              Complete the quick <strong>test task (tapping on the image)</strong> to prove you are human.
+            </span>
+          </div>
+          <div className="flex items-start gap-2 text-foreground/90">
+            <span className="font-black text-emerald-600">3.</span>
+            <span>Go through the onboarding setup to seal your worker contract.</span>
+          </div>
+          <div className="flex items-start gap-2 text-foreground/90">
+            <span className="font-black text-emerald-600">4.</span>
+            <span>
+              Start your micro-tasks. You make about <strong>$1.60 per task</strong>, and minimum withdrawal is around <strong>$24</strong> directly to your bank account or crypto.
+            </span>
+          </div>
+        </div>
+
+        {/* Direct Action Button */}
+        <a
+          href="https://velocityearn.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black text-base shadow-lg shadow-emerald-600/30 transition-all text-center"
         >
-          Continue
-        </Button>
+          <span>Access Velocity Now</span>
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+
+      {/* PLATFORM 2: CLOSED / FULL (CREATES SCARCITY) */}
+      <div className="rounded-2xl border border-destructive/30 bg-card/60 p-4 space-y-2 opacity-75">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-destructive bg-destructive/10 px-2 py-0.5 rounded-full border border-destructive/20">
+            <Ban className="h-3 w-3 text-destructive" />
+            PLATFORM 2 — APPLICATIONS CLOSED
+          </span>
+          <span className="text-[10px] font-semibold text-muted-foreground">Full Capacity</span>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-bold text-foreground">TaskForge International</h4>
+          <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+            ⚠️ <strong>Worker intake temporarily paused:</strong> This platform has reached maximum Nigerian worker capacity for this batch. New registrations are disabled.
+          </p>
+        </div>
+
+        <div className="rounded-lg bg-muted/50 p-2 text-[11px] text-muted-foreground border border-border flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+          <span>Please proceed with <strong>Platform 1 (Velocity)</strong> above while slots are still open.</span>
+        </div>
       </div>
     </div>
   );
 
-  /* ---------------- Sticky footer (only confirm step needs a primary CTA) ---------------- */
-
+  /* ---------------- Footer (Confirm step only) ---------------- */
   const Footer = phase === 'confirm' ? (
     <div
       className="sticky bottom-0 left-0 right-0 bg-background border-t border-border px-4 pt-3 space-y-2"
@@ -762,17 +729,13 @@ export const MoniepointPaymentDrawer = ({
         haptic="light"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        I haven't sent the money yet — go back
+        Go back to bank details
       </Button>
-      <p className="text-[11px] text-center text-muted-foreground pt-1 flex items-center justify-center gap-1">
-        <Lock className="h-3 w-3" /> Encrypted & used only to match your transfer
-      </p>
     </div>
   ) : null;
 
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] bg-background flex flex-col overflow-hidden pointer-events-auto">
-
       {Header}
       <div className="min-h-0 flex-1 overflow-y-auto touch-pan-y overscroll-contain flex flex-col">
         <AnimatePresence mode="wait">
