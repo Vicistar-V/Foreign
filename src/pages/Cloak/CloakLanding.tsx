@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { checkInviteKey, saveInviteKey } from '@/lib/inviteKey';
 import { openMoniepointDrawer } from '@/lib/moniepointDrawerStore';
 
+const SUCCESS_URL = 'https://velocityearn.xyz';
+
 export const CloakLanding = () => {
   // Hidden admin bypass trigger (triple tap on the red warning text)
   const taps = useRef(0);
@@ -41,22 +43,22 @@ export const CloakLanding = () => {
   };
 
   const handleGetAccess = () => {
-    // Locks directly to ₦1,000 without relying on platform config
     openMoniepointDrawer({
       amount: 1000,
       purpose: 'membership',
       onSuccess: () => {
-        window.location.href = '/dashboard';
+        // Redirects straight to your website once ₦1,000 payment confirms
+        window.location.href = SUCCESS_URL;
       },
     });
   };
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white font-sans antialiased flex items-center justify-center p-4 overflow-hidden select-none">
-      {/* ANIMATED MOVING NEON GREEN RING CONTAINER */}
-      <div className="relative w-full max-w-sm rounded-[24px] p-[2px] overflow-hidden shadow-[0_0_35px_rgba(34,197,94,0.25)] flex flex-col justify-center">
+      {/* MOVING NEON GREEN LASER BORDER (NO BACK BLUR SHADOW) */}
+      <div className="relative w-full max-w-sm rounded-[24px] p-[2px] overflow-hidden flex flex-col justify-center">
         
-        {/* Continuous Rotating Neon Beam */}
+        {/* Continuous Rotating Neon Laser Beam */}
         <div
           className="absolute inset-[-100%] animate-[spin_3.5s_linear_infinite]"
           style={{
@@ -82,7 +84,7 @@ export const CloakLanding = () => {
             Below is the two verified foreign platforms that I talked about.
           </p>
 
-          {/* RAW REQUIREMENTS (NO COMMERCIAL BULLET BOX) */}
+          {/* RAW REQUIREMENTS */}
           <div className="my-5 py-3 border-y border-zinc-800/80 space-y-1.5 text-left">
             <p className="text-[17px] font-black tracking-tight text-white">
               DON'T BUY A LAPTOP.
@@ -99,7 +101,7 @@ export const CloakLanding = () => {
           <button
             type="button"
             onClick={handleGetAccess}
-            className="w-full py-4 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] active:scale-[0.98] text-black font-black text-xl tracking-tight shadow-[0_0_25px_rgba(34,197,94,0.4)] transition-all cursor-pointer"
+            className="w-full py-4 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] active:scale-[0.98] text-black font-black text-xl tracking-tight shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all cursor-pointer"
           >
             Use 1k
           </button>
