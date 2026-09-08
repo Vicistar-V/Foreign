@@ -1,13 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { checkInviteKey, saveInviteKey } from '@/lib/inviteKey';
-import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { openMoniepointDrawer } from '@/lib/moniepointDrawerStore';
 
 export const CloakLanding = () => {
-  const { data: config } = usePlatformConfig();
-  const price = Number(config?.membership_fee ?? 1000);
-
-  // Hidden admin bypass trigger (triple tap on red text)
+  // Hidden admin bypass trigger (triple tap on the red warning text)
   const taps = useRef(0);
   const tapTimer = useRef<number | null>(null);
 
@@ -45,71 +41,78 @@ export const CloakLanding = () => {
   };
 
   const handleGetAccess = () => {
-    // Triggers the Moniepoint Bank Transfer Drawer globally
+    // Locks directly to ₦1,000 without relying on platform config
     openMoniepointDrawer({
-      amount: price,
+      amount: 1000,
       purpose: 'membership',
       onSuccess: () => {
-        // Destination after payment is confirmed (e.g. your members vault or WhatsApp link)
         window.location.href = '/dashboard';
       },
     });
   };
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans antialiased px-5 py-8 flex flex-col justify-center max-w-md mx-auto">
-      <main className="w-full">
-        {/* MAIN HEADLINE */}
-        <h1 className="text-[25px] sm:text-[27px] font-black text-black leading-[1.25] tracking-tight text-left">
-          Stop wasting time learning 6 months tech skills when you have bills to pay this week.
-        </h1>
+    <div className="h-[100dvh] w-full bg-black text-white font-sans antialiased flex items-center justify-center p-4 overflow-hidden select-none">
+      {/* ANIMATED MOVING NEON GREEN RING CONTAINER */}
+      <div className="relative w-full max-w-sm rounded-[24px] p-[2px] overflow-hidden shadow-[0_0_35px_rgba(34,197,94,0.25)] flex flex-col justify-center">
+        
+        {/* Continuous Rotating Neon Beam */}
+        <div
+          className="absolute inset-[-100%] animate-[spin_3.5s_linear_infinite]"
+          style={{
+            background:
+              'conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 280deg, #22c55e 340deg, #4ade80 360deg)',
+          }}
+        />
 
-        {/* SUB-HOOK */}
-        <p className="mt-4 text-[17px] text-zinc-900 font-medium leading-snug text-left">
-          Below is the two verified foreign platforms that I talked about.
-        </p>
+        {/* INNER CONTENT CARD */}
+        <div className="relative z-10 w-full bg-[#0a0a0c] rounded-[22px] px-5 py-6 flex flex-col justify-between">
+          
+          {/* MAIN HEADLINE */}
+          <h1 className="text-[21px] sm:text-[23px] font-black text-white leading-[1.25] tracking-tight text-left">
+            Stop wasting time learning 6 months tech skills when you have bills to pay{' '}
+            <span className="text-[#22c55e] underline decoration-[#22c55e] underline-offset-4 decoration-2">
+              this week
+            </span>
+            .
+          </h1>
 
-        {/* RAW REQUIREMENTS */}
-        <div className="my-6 bg-zinc-50 border border-zinc-200/90 rounded-xl p-4 space-y-3 text-left">
-          <div className="flex items-center gap-3">
-            <span className="text-red-600 text-sm">🔴</span>
-            <span className="text-[17px] font-black tracking-tight text-black">
+          {/* SUB-HOOK */}
+          <p className="mt-3 text-[14px] sm:text-[15px] text-zinc-300 font-medium leading-snug text-left">
+            Below is the two verified foreign platforms that I talked about.
+          </p>
+
+          {/* RAW REQUIREMENTS (NO COMMERCIAL BULLET BOX) */}
+          <div className="my-5 py-3 border-y border-zinc-800/80 space-y-1.5 text-left">
+            <p className="text-[17px] font-black tracking-tight text-white">
               DON'T BUY A LAPTOP.
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-red-600 text-sm">🔴</span>
-            <span className="text-[15px] font-semibold text-zinc-800">
+            </p>
+            <p className="text-[14px] font-medium text-zinc-400">
               No need for VPN.
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-red-600 text-sm">🔴</span>
-            <span className="text-[15px] font-semibold text-zinc-800">
+            </p>
+            <p className="text-[14px] font-medium text-zinc-400">
               No need for PayPal.
-            </span>
+            </p>
           </div>
+
+          {/* CALL TO ACTION BUTTON */}
+          <button
+            type="button"
+            onClick={handleGetAccess}
+            className="w-full py-4 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] active:scale-[0.98] text-black font-black text-xl tracking-tight shadow-[0_0_25px_rgba(34,197,94,0.4)] transition-all cursor-pointer"
+          >
+            Use 1k
+          </button>
+
+          {/* BIGGER RED TEXT BELOW */}
+          <p
+            onClick={handleSecretTap}
+            className="mt-3 text-center text-[15px] sm:text-[16px] font-black text-red-500 tracking-tight leading-tight cursor-default select-none"
+          >
+            Take it very seriously. It can change your life.
+          </p>
         </div>
-
-        {/* CALL TO ACTION BUTTON */}
-        <button
-          type="button"
-          onClick={handleGetAccess}
-          className="w-full mt-2 py-4 px-6 rounded-xl bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98] text-white font-extrabold text-xl tracking-tight shadow-md transition-all cursor-pointer"
-        >
-          Get Access
-        </button>
-
-        {/* SUB-TEXT IN RED */}
-        <p
-          onClick={handleSecretTap}
-          className="mt-3 text-center text-sm font-bold text-red-600 cursor-default select-none"
-        >
-          Follow the exact instructions.
-        </p>
-      </main>
+      </div>
     </div>
   );
 };
