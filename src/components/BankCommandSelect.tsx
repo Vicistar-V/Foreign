@@ -259,8 +259,8 @@ export const BankCommandSelect = ({
 
       <NestedDrawer open={open} onOpenChange={setOpen}>
         <DrawerPrimitive.Portal>
-          <DrawerPrimitive.Overlay className="fixed inset-0 z-[60] bg-black/80" />
-          <DrawerPrimitive.Content className="fixed inset-x-0 bottom-0 z-[70] mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-[10px] border bg-background">
+          <DrawerPrimitive.Overlay className="fixed inset-0 z-[140] bg-black/80" />
+          <DrawerPrimitive.Content className="fixed inset-x-0 bottom-0 z-[150] mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-[10px] border bg-background">
             <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
             <div className="grid gap-1.5 p-4 text-center sm:text-left pb-3">
               <DrawerPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">Select Your Bank</DrawerPrimitive.Title>
