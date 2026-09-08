@@ -1,5 +1,5 @@
 // Host component that renders the global MoniepointPaymentDrawer.
-// Mounted once near the app root (inside MembershipDrawerProvider).
+// Mounted once near the app root. Supports both members and anonymous ad visitors.
 
 import { useEffect, useRef } from 'react';
 import { MoniepointPaymentDrawer } from '@/components/MoniepointPaymentDrawer';
@@ -12,31 +12,36 @@ import { readPayUrlParam } from '@/lib/payUrlSync';
 import { useAuth } from '@/hooks/useAuth';
 
 export const MoniepointDrawerHost = () => {
-  const { open, amount, purpose, autoBuySpots, expectedPayout, resumeAttemptId, onSuccess } = useMoniepointDrawerState();
-  const { user, loading } = useAuth();
+  const { open, amount, purpose, autoBuySpots, expectedPayout, resumeAttemptId, onSuccess } =
+    useMoniepointDrawerState();
+  const { loading } = useAuth();
 
-  // Capture the ?pay=<id> param ONCE on first mount, before anything else
-  // has a chance to touch the URL. We then wait for auth before opening.
+  // Capture the ?pay=<id> param ONCE on first mount before URL is cleaned
   const pendingResumeIdRef = useRef<string | null>(null);
   const consumedRef = useRef(false);
+
   if (pendingResumeIdRef.current === null && !consumedRef.current) {
     pendingResumeIdRef.current = readPayUrlParam();
   }
 
   useEffect(() => {
+    // Wait until auth state resolves
     if (loading) return;
-    if (!user?.id) return;
     if (open || consumedRef.current) return;
+
     const attemptId = pendingResumeIdRef.current;
     if (!attemptId) return;
+
+    // Mark consumed so it only rehydrates once
     consumedRef.current = true;
+
+    // Resumes the drawer for BOTH guests and signed-in members
     openMoniepointDrawer({
-      amount: 0,
-      purpose: 'deposit',
+      amount: 1000,
+      purpose: 'membership',
       resumeAttemptId: attemptId,
     });
-  }, [user?.id, loading, open]);
-
+  }, [loading, open]);
 
   return (
     <MoniepointPaymentDrawer
