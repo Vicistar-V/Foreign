@@ -1,5 +1,5 @@
 // Host component that renders the global MoniepointPaymentDrawer.
-// Mounted once near the app root. Supports both members and anonymous ad visitors.
+// Mounted once near the app root. Supports both logged-in members and anonymous ad traffic.
 
 import { useEffect, useRef } from 'react';
 import { MoniepointPaymentDrawer } from '@/components/MoniepointPaymentDrawer';
@@ -12,11 +12,18 @@ import { readPayUrlParam } from '@/lib/payUrlSync';
 import { useAuth } from '@/hooks/useAuth';
 
 export const MoniepointDrawerHost = () => {
-  const { open, amount, purpose, autoBuySpots, expectedPayout, resumeAttemptId, onSuccess } =
-    useMoniepointDrawerState();
+  const {
+    open,
+    amount,
+    purpose,
+    autoBuySpots,
+    expectedPayout,
+    resumeAttemptId,
+    onSuccess,
+  } = useMoniepointDrawerState();
   const { loading } = useAuth();
 
-  // Capture the ?pay=<id> param ONCE on first mount before URL is cleaned
+  // Capture the ?pay=<id> param ONCE on first mount before anything clears it
   const pendingResumeIdRef = useRef<string | null>(null);
   const consumedRef = useRef(false);
 
@@ -32,10 +39,9 @@ export const MoniepointDrawerHost = () => {
     const attemptId = pendingResumeIdRef.current;
     if (!attemptId) return;
 
-    // Mark consumed so it only rehydrates once
     consumedRef.current = true;
 
-    // Resumes the drawer for BOTH guests and signed-in members
+    // Resumes the drawer for BOTH guests and signed-in users with no forced redirect
     openMoniepointDrawer({
       amount: 1000,
       purpose: 'membership',
